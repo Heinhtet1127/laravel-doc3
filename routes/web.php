@@ -8,11 +8,7 @@ Route::get('/', function () {
 });
 
 Route::get('users', function () {
-    User::create([
-        "name" => "Test",
-        "email" => "test2@gmail.com",
-        "password" => "123456",
-    ]);
+    $users = User::get();
 
-    dd(User::get()->toArray());
+    return view('users', compact('users'));
 });
