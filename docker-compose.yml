@@ -49,16 +49,15 @@ services:
         depends_on:
             - web
     db:
-        image: mysql:8.0
+        image: postgres:18.4-alpine
         environment:
-            MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: laravel
-            MYSQL_USER: laravel
-            MYSQL_PASSWORD: secret
+            POSTGRES_DB: laravel
+            POSTGRES_USER: laravel
+            POSTGRES_PASSWORD: secret
         ports:
-            - "3307:3306"
+            - "5433:5432"
         volumes:
-            - dbdata:/var/lib/mysql
+            - dbdata:/var/lib/postgresql
 
 volumes:
     dbdata:

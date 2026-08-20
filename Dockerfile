@@ -5,7 +5,8 @@ WORKDIR /var/www/html
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
-    && docker-php-ext-install zip pdo_mysql
+    libpq-dev \
+    && docker-php-ext-install zip pdo pdo_pgsql
 
 COPY . /var/www/html
 
