@@ -16,11 +16,11 @@ class TestCommand extends Command
      */
     public function handle()
     {
-        info(now());
-        User::create([
-            'name' => 'Test '.rand(1, 1000),
-            'email' => 'test'.time().'@gmail.com',
-            'password' => '123456',
-        ]);
+        // info(now());
+        // User::create([
+        //     'name' => 'Test '.rand(1, 1000),
+        //     'email' => 'test'.time().'@gmail.com',
+        //     'password' => '123456',
+        // ]);
     }
 }

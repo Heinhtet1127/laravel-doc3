@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MailController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -12,3 +13,5 @@ Route::get('users', function () {
 
     return view('users', compact('users'));
 });
+
+Route::get("send-email", [MailController::class, 'index']);
