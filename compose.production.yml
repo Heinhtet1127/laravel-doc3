@@ -1,0 +1,103 @@
+name: laravel-doc3
+
+x-app: &app
+    image: laravel-doc3-app:${IMAGE_TAG:-latest}
+    env_file:
+        - .env
+    restart: unless-stopped
+    volumes:
+        - app-storage:/var/www/html/storage
+    networks:
+        - app
+    depends_on:
+        db:
+            condition: service_healthy
+
+services:
+    web:
+        <<: *app
+        build:
+            context: .
+            dockerfile: Dockerfile.production
+            target: app
+        command:
+            - sh
+            - -c
+            - php artisan optimize && exec php-fpm
+
+    queue:
+        <<: *app
+        command:
+            - sh
+            - -c
+            - php artisan optimize && exec php artisan queue:work --sleep=3 --tries=3 --timeout=90
+        stop_grace_period: 2m
+
+    scheduler:
+        <<: *app
+        command:
+            - sh
+            - -c
+            - php artisan optimize && exec php artisan schedule:work --no-interaction
+
+    nginx:
+        image: laravel-doc3-nginx:${IMAGE_TAG:-latest}
+        build:
+            context: .
+            dockerfile: Dockerfile.production
+            target: webserver
+        restart: unless-stopped
+        volumes:
+            - app-storage:/var/www/html/storage:ro
+        networks:
+            - app
+        depends_on:
+            - web
+
+    caddy:
+        image: caddy:2-alpine
+        environment:
+            DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+        restart: unless-stopped
+        ports:
+            - "80:80"
+            - "443:443"
+            - "443:443/udp"
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - caddy-data:/data
+            - caddy-config:/config
+        networks:
+            - app
+        depends_on:
+            - nginx
+
+    db:
+        image: postgres:18.4-alpine
+        environment:
+            POSTGRES_DB: ${DB_DATABASE:?Set DB_DATABASE in .env}
+            POSTGRES_USER: ${DB_USERNAME:?Set DB_USERNAME in .env}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+        restart: unless-stopped
+        volumes:
+            - db-data:/var/lib/postgresql
+        networks:
+            - app
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+
+networks:
+    app:
+        driver: bridge
+
+volumes:
+    app-storage:
+    caddy-config:
+    caddy-data:
+    db-data:
